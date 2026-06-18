@@ -1,0 +1,54 @@
+{
+  "status": "passed",
+  "mvp_root": "D:/project/PSR-SRS-MVP",
+  "enterprise_root": "D:/project/PSR-SRS-Enterprise",
+  "tolerances": {
+    "absolute": 1e-06,
+    "relative": 1e-06
+  },
+  "subprocesses": {
+    "mvp_return_code": 0,
+    "enterprise_return_code": 0
+  },
+  "checks": {
+    "tokenization": {
+      "parity": "pass",
+      "detail": "Tokenization outputs match"
+    },
+    "bm25": {
+      "parity": "pass",
+      "details": {
+        "laptop gaming": {
+          "ent_items": [
+            "i2",
+            "i1",
+            "i5"
+          ],
+          "mvp_items": [
+            "i2",
+            "i1",
+            "i5"
+          ]
+        },
+        "": {
+          "ent_items": [],
+          "mvp_items": []
+        },
+        "the and of": {
+          "ent_items": [],
+          "mvp_items": []
+        }
+      }
+    },
+    "semantic": {
+      "parity": "pass"
+    },
+    "fusion": {
+      "parity": "pass"
+    },
+    "profiles": {
+      "parity": "pass"
+    }
+  },
+  "unexpected_differences": []
+}

@@ -1,0 +1,66 @@
+{
+  "tokenization": [
+    {"text": "Hello, World! laptop computer", "remove_stopwords": true},
+    {"text": "", "remove_stopwords": true},
+    {"text": "the and of in", "remove_stopwords": true},
+    {"text": "HELLO World", "remove_stopwords": false}
+  ],
+  "build_item_text": [
+    {"title": "Laptop", "description": "A great laptop", "category": "Electronics", "subcategory": "Laptops", "brand": "TechPro"},
+    {"title": "T-Shirt", "description": "Cotton t-shirt", "category": "Clothing", "subcategory": "Shirts", "brand": "UrbanWear", "weights": {"title": 2, "description": 1, "category": 1, "subcategory": 1, "brand": 1}}
+  ],
+  "bm25": {
+    "documents": [
+      ["i1", "laptop computer electronics portable"],
+      ["i2", "gaming laptop powerful graphics"],
+      ["i3", "desktop computer office workstation"],
+      ["i4", "wireless mouse ergonomic electronics"],
+      ["i5", "mechanical keyboard gaming rgb"]
+    ],
+    "queries": [
+      {"query": "laptop gaming", "top_k": 5},
+      {"query": "", "top_k": 5},
+      {"query": "the and of", "top_k": 5}
+    ],
+    "k1": 1.5,
+    "b": 0.75
+  },
+  "semantic": {
+    "documents": [
+      "laptop computer electronics portable",
+      "gaming laptop powerful graphics",
+      "desktop computer office workstation",
+      "wireless mouse ergonomic electronics",
+      "mechanical keyboard gaming rgb",
+      "headphones noise cancelling wireless",
+      "monitor 4k display hdr",
+      "printer laser wireless duplex"
+    ],
+    "queries": [{"query": "gaming laptop", "top_k": 5}],
+    "config": {"svd_components": 4, "random_state": 42}
+  },
+  "fusion": {
+    "bm25": [["a", 3.0, 1], ["b", 2.0, 2], ["c", 1.0, 3]],
+    "semantic": [["b", 5.0, 1], ["d", 4.0, 2], ["a", 3.0, 3]],
+    "rrf_k": 60,
+    "top_k": 10,
+    "bm25_weight": 0.5,
+    "semantic_weight": 0.5
+  },
+  "profiles": {
+    "items": {
+      "i1": {"category": "Electronics", "subcategory": "Laptops", "brand": "TechPro", "price": "1000"},
+      "i2": {"category": "Electronics", "subcategory": "Phones", "brand": "SmartWave", "price": "800"}
+    },
+    "users_map": {
+      "u1": {"is_cold_start": "false"},
+      "u_cold": {"is_cold_start": "true"}
+    },
+    "train_events": [
+      {"user_id": "u1", "event_type": "click", "item_id": "i1", "timestamp": "2026-03-15T10:00:00+00:00", "session_id": "s1"},
+      {"user_id": "u1", "event_type": "purchase", "item_id": "i2", "timestamp": "2026-03-20T10:00:00+00:00", "session_id": "s2"}
+    ],
+    "event_weights": {"click": 1.0, "purchase": 5.0},
+    "half_life_days": 30.0
+  }
+}

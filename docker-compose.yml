@@ -1,0 +1,24 @@
+# PSR-SRS Enterprise — Local development stack
+# Phase E0: placeholder only. Full compose will be added in later phases.
+
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./data/psr_srs_enterprise.db
+    volumes:
+      - ./backend:/app
+      - ./data:/app/data
+    profiles:
+      - full  # not enabled by default — use: docker compose --profile full up
+
+  # Future services will be added in later phases:
+  # frontend:
+  # redis:
+  # opensearch:

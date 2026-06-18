@@ -1,0 +1,24 @@
+{
+  "random_seed": 20260614,
+  "num_items": 500,
+  "num_users": 100,
+  "num_queries": 200,
+  "num_sessions": 500,
+  "categories": ["Electronics", "Clothing", "Books", "Home", "Sports"],
+  "subcategories": {
+    "Electronics": ["Smartphones", "Laptops", "Headphones", "Cameras", "Tablets"],
+    "Clothing": ["Shirts", "Pants", "Shoes", "Jackets", "Dresses"],
+    "Books": ["Fiction", "Non-Fiction", "Technical", "Children", "Reference"],
+    "Home": ["Kitchen", "Furniture", "Decor", "Garden", "Bedding"],
+    "Sports": ["Running", "Swimming", "Cycling", "Hiking", "Fitness"]
+  },
+  "brands": {
+    "Electronics": ["TechPro", "GigaByte", "ElectroMax", "SmartWave", "PixelTech"],
+    "Clothing": ["UrbanWear", "ComfortPlus", "StyleFit", "ClassicMode", "TrendNow"],
+    "Books": ["KnowledgePress", "ReadWell", "InfoHub", "ScholarPub", "PageTurner"],
+    "Home": ["HomeStyle", "ModernLiving", "CozyNest", "UrbanDecor", "FreshSpace"],
+    "Sports": ["SportMax", "ActivePro", "FitGear", "TrailBlazer", "PowerUp"]
+  },
+  "price_range": [5.0, 2000.0],
+  "relevance_levels": [0, 1, 2, 3]
+}

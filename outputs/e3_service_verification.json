@@ -1,0 +1,33 @@
+{
+  "checks": {
+    "index_ready": true,
+    "profiles_ready": true,
+    "search_bm25": "pass",
+    "search_semantic": "pass",
+    "search_rrf": "pass",
+    "search_linear": "pass",
+    "search_personalized": "pass",
+    "personalized_applied": true,
+    "fallback_reason": "cold_start_user",
+    "cold_start_fallback": "fail",
+    "cold_start_reason": "none",
+    "evaluation": "pass"
+  },
+  "timings": {
+    "search_bm25_ms": 0.0,
+    "search_semantic_ms": 0.0,
+    "search_rrf_ms": 0.0,
+    "search_linear_ms": 0.0,
+    "search_personalized_ms": 0.0,
+    "evaluation_s": 0.12
+  },
+  "database_connected": true,
+  "schema_revision": "missing",
+  "item_count": 500,
+  "event_count": 6376,
+  "index_generation": 1,
+  "indexed_items": 500,
+  "profile_generation": 1,
+  "profile_count": 100,
+  "status": "passed"
+}

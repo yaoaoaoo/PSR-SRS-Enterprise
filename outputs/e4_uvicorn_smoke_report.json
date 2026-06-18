@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "host": "127.0.0.1",
+  "port": 8000,
+  "process_started": true,
+  "health_status": 200,
+  "readiness_status": 503,
+  "swagger_status": 200,
+  "openapi_status": 200,
+  "search_status": 200,
+  "search_result_count": 5,
+  "items_status": 200,
+  "system_status": 200,
+  "request_id_verified": true,
+  "process_stopped": true,
+  "failed_checks": [],
+  "health_status_rid": 200
+}

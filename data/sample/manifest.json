@@ -1,0 +1,52 @@
+[
+  {
+    "filename": "items.csv",
+    "sha256": "d5068a93c9bde32a5aca12a37bf68adc1d4a147049e09e59e7895586da59c329",
+    "row_count": 500,
+    "size_bytes": 107032,
+    "source_project": "PSR-SRS-MVP",
+    "source_sha256": "d5068a93c9bde32a5aca12a37bf68adc1d4a147049e09e59e7895586da59c329",
+    "hashes_match": true,
+    "copied_at": "2026-06-18T11:36:14.484354+00:00"
+  },
+  {
+    "filename": "users.csv",
+    "sha256": "2569d4eed8d98f85e3d7c5169eaed172699686bd9b9d147560ca2b33b238a147",
+    "row_count": 100,
+    "size_bytes": 14506,
+    "source_project": "PSR-SRS-MVP",
+    "source_sha256": "2569d4eed8d98f85e3d7c5169eaed172699686bd9b9d147560ca2b33b238a147",
+    "hashes_match": true,
+    "copied_at": "2026-06-18T11:36:14.487930+00:00"
+  },
+  {
+    "filename": "queries.csv",
+    "sha256": "cd368caed880a0dfcd2f437f2c4a55532a2edacf4d09aedf07727ae59c3c356e",
+    "row_count": 200,
+    "size_bytes": 27529,
+    "source_project": "PSR-SRS-MVP",
+    "source_sha256": "cd368caed880a0dfcd2f437f2c4a55532a2edacf4d09aedf07727ae59c3c356e",
+    "hashes_match": true,
+    "copied_at": "2026-06-18T11:36:14.487930+00:00"
+  },
+  {
+    "filename": "events.csv",
+    "sha256": "1ed4f332924bd4cf967206f85c0899725d7d919d50a4dcbf9b62da4fab02746d",
+    "row_count": 6376,
+    "size_bytes": 954807,
+    "source_project": "PSR-SRS-MVP",
+    "source_sha256": "1ed4f332924bd4cf967206f85c0899725d7d919d50a4dcbf9b62da4fab02746d",
+    "hashes_match": true,
+    "copied_at": "2026-06-18T11:36:14.498757+00:00"
+  },
+  {
+    "filename": "qrels.csv",
+    "sha256": "bf2042bf80381565016f35e5642220b72425ba5aa3d5455433e7b0bbc8b190b9",
+    "row_count": 10076,
+    "size_bytes": 282162,
+    "source_project": "PSR-SRS-MVP",
+    "source_sha256": "bf2042bf80381565016f35e5642220b72425ba5aa3d5455433e7b0bbc8b190b9",
+    "hashes_match": true,
+    "copied_at": "2026-06-18T11:36:14.503029+00:00"
+  }
+]

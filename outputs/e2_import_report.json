@@ -1,0 +1,15 @@
+{
+  "status": "completed",
+  "dataset_fingerprint": "33866776aafa58ca9fbd75ac081535dde70b7c34df6cb15f4a6c5df2e4face37",
+  "source_path": "D:\\project\\PSR-SRS-Enterprise\\data\\sample",
+  "database_url_sanitized": "sqlite:///D:/project/PSR-SRS-Enterprise/backend/data/psr_srs_enterprise.db",
+  "items_count": 500,
+  "users_count": 100,
+  "queries_count": 200,
+  "events_count": 6376,
+  "qrels_count": 10076,
+  "duration_seconds": 0.325292,
+  "already_imported": false,
+  "dry_run": false,
+  "generated_at": "2026-06-18T12:12:32.901067+00:00"
+}
