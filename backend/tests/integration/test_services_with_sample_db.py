@@ -9,8 +9,7 @@ import pytest
 from app.db.seed.importer import import_dataset
 from app.services.container import ServiceContainer
 from app.services.types import SearchMode
-
-SAMPLE_DIR = Path("D:/project/PSR-SRS-Enterprise/data/sample")
+from tests.path_helpers import SAMPLE_DIR
 
 
 @pytest.fixture(scope="module")

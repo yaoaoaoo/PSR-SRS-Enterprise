@@ -1,13 +1,16 @@
 """Tests for the parity verification tool itself.
 
 Verify exit codes, JSON structure, subprocess error handling,
-and tolerance comparisons without running the full MVP.
+and tolerance comparisons.  Real MVP parity requires the
+``PSR_SRS_MVP_ROOT`` environment variable pointing to a local
+MVP checkout; without it the real parity test is skipped.
 """
 
 from __future__ import annotations
 
 import json
 import math
+import os
 import subprocess
 import sys
 import tempfile
@@ -15,13 +18,24 @@ from pathlib import Path
 
 import pytest
 
+from tests.path_helpers import ENTERPRISE_ROOT
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-PARITY_SCRIPT = Path(__file__).resolve().parent.parent.parent.parent / "scripts" / "verify_mvp_algorithm_parity.py"
-FIXTURE_PATH = Path(__file__).resolve().parent.parent.parent.parent / "scripts" / "parity" / "parity_fixture.json"
+_PARENT = Path(__file__).resolve().parent.parent.parent.parent
+PARITY_SCRIPT = _PARENT / "scripts" / "verify_mvp_algorithm_parity.py"
+FIXTURE_PATH = _PARENT / "scripts" / "parity" / "parity_fixture.json"
 PYTHON_EXE = sys.executable
+
+
+def _mvp_root() -> Path | None:
+    raw = os.getenv("PSR_SRS_MVP_ROOT")
+    if not raw:
+        return None
+    p = Path(raw).expanduser().resolve()
+    return p if p.is_dir() else None
 
 
 @pytest.fixture
@@ -32,17 +46,26 @@ def tmp_output():
     Path(path).unlink(missing_ok=True)
 
 
+# ---------------------------------------------------------------------------
+# Real parity — requires external MVP repo
+# ---------------------------------------------------------------------------
+
 @pytest.mark.parity
 class TestParityToolReal:
     """Real parity runs (marked 'parity' — may be slow)."""
 
     def test_real_parity_passes(self, tmp_output):
-        """Full parity run should pass (exit 0, status=passed)."""
+        mvp_root = _mvp_root()
+        if not mvp_root:
+            pytest.skip(
+                "PSR_SRS_MVP_ROOT env var not set or path does not exist; "
+                "set it to your local MVP checkout to run real parity"
+            )
         proc = subprocess.run(
             [
                 PYTHON_EXE, str(PARITY_SCRIPT),
-                "--mvp-root", str(Path("D:/project/PSR-SRS-MVP")),
-                "--enterprise-root", str(Path("D:/project/PSR-SRS-Enterprise")),
+                "--mvp-root", str(mvp_root),
+                "--enterprise-root", str(ENTERPRISE_ROOT),
                 "--output", tmp_output,
             ],
             capture_output=True, text=True, timeout=120,
@@ -55,69 +78,56 @@ class TestParityToolReal:
         assert report["subprocesses"]["enterprise_return_code"] == 0
 
 
-class TestParityToolStructure:
-    """Structural tests for the parity tool."""
+# ---------------------------------------------------------------------------
+# Structure / unit tests (no external MVP needed)
+# ---------------------------------------------------------------------------
 
+class TestParityToolStructure:
     def test_enterprise_runner_succeeds(self, tmp_output):
-        """Enterprise runner alone should produce valid JSON (via subprocess)."""
-        runner = Path(__file__).resolve().parent.parent.parent.parent / "scripts" / "parity" / "run_enterprise_case.py"
+        runner = _PARENT / "scripts" / "parity" / "run_enterprise_case.py"
         proc = subprocess.run(
             [PYTHON_EXE, str(runner), "--fixture", str(FIXTURE_PATH)],
             capture_output=True, text=True, timeout=30,
         )
         assert proc.returncode == 0
         data = json.loads(proc.stdout)
-        assert "tokenization" in data
-        assert "bm25" in data
-        assert "semantic" in data
-        assert "fusion" in data
-        assert "profiles" in data
+        for k in ("tokenization", "bm25", "semantic", "fusion", "profiles"):
+            assert k in data, f"Missing: {k}"
 
     def test_parity_report_has_required_fields(self):
-        """Verify the report JSON structure."""
-        # Use the latest report
-        report_path = Path("D:/project/PSR-SRS-Enterprise/outputs/e1_parity_report.json")
+        report_path = ENTERPRISE_ROOT / "outputs" / "e1_parity_report.json"
         if report_path.exists():
             report = json.loads(report_path.read_text())
-            assert "status" in report
-            assert "tolerances" in report
-            assert "checks" in report
-            assert "unexpected_differences" in report
-            assert "subprocesses" in report
+            for k in ("status", "tolerances", "checks", "unexpected_differences", "subprocesses"):
+                assert k in report, f"Missing: {k}"
 
     def test_tolerance_comparison_pass(self):
-        """Values within tolerance should be considered equal."""
         assert math.isclose(1.0, 1.0000001, rel_tol=1e-6, abs_tol=1e-6)
 
     def test_tolerance_comparison_fail(self):
-        """Values outside tolerance should NOT be equal."""
         assert not math.isclose(1.0, 1.1, rel_tol=1e-6, abs_tol=1e-6)
 
     def test_fixture_loads(self):
-        """Parity fixture should be valid JSON and have required keys."""
         data = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
         for key in ("tokenization", "bm25", "semantic", "fusion", "profiles"):
             assert key in data, f"Missing fixture key: {key}"
 
 
 class TestParityErrorHandling:
-    """Error handling in the parity tool."""
-
     def test_nonexistent_mvp_path_fails(self, tmp_output):
         proc = subprocess.run(
             [
                 PYTHON_EXE, str(PARITY_SCRIPT),
                 "--mvp-root", "D:/nonexistent/path",
-                "--enterprise-root", "D:/project/PSR-SRS-Enterprise",
+                "--enterprise-root", str(ENTERPRISE_ROOT),
                 "--output", tmp_output,
             ],
             capture_output=True, text=True, timeout=30,
         )
-        # Should fail (non-zero exit)
         assert proc.returncode != 0
 
     def test_enterprise_runner_bad_fixture_fails(self):
-        runner = Path(__file__).resolve().parent.parent.parent.parent / "scripts" / "parity" / "run_enterprise_case.py"
+        runner = _PARENT / "scripts" / "parity" / "run_enterprise_case.py"
         proc = subprocess.run(
             [PYTHON_EXE, str(runner), "--fixture", "nonexistent.json"],
             capture_output=True, text=True, timeout=30,

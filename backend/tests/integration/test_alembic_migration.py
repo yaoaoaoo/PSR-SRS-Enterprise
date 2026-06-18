@@ -193,9 +193,8 @@ class TestAlembicMigration:
                     engine2.dispose()
             finally:
                 if 'engine' in dir() and engine:
-                    try:
+                    import contextlib
+                    with contextlib.suppress(Exception):
                         engine.dispose()
-                    except Exception:
-                        pass
         finally:
             _cleanup(db)

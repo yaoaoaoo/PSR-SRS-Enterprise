@@ -127,8 +127,8 @@ def client_with_data():
 
     # Import sample
     from app.db.seed.importer import import_dataset
-    sample_dir = Path("D:/project/PSR-SRS-Enterprise/data/sample")
-    import_dataset(factory, sample_dir)
+    from tests.path_helpers import SAMPLE_DIR
+    import_dataset(factory, SAMPLE_DIR)
 
     from app.main import create_app
     app = create_app()

@@ -5,8 +5,7 @@ from __future__ import annotations
 from unittest.mock import patch
 
 from app.db.seed.importer import import_dataset
-
-SAMPLE_DIR = __import__("pathlib").Path("D:/project/PSR-SRS-Enterprise/data/sample")
+from tests.path_helpers import SAMPLE_DIR
 
 
 class TestMidImportRollback:
