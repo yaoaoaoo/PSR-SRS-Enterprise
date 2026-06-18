@@ -20,9 +20,14 @@ class PersonalizationConfig:
     """Typed configuration for personalized re-ranking."""
 
     train_ratio: float = 0.8
-    event_weights: dict[str, float] = field(default_factory=lambda: {
-        "click": 1.0, "favorite": 2.0, "add_to_cart": 3.0, "purchase": 5.0,
-    })
+    event_weights: dict[str, float] = field(
+        default_factory=lambda: {
+            "click": 1.0,
+            "favorite": 2.0,
+            "add_to_cart": 3.0,
+            "purchase": 5.0,
+        }
+    )
     half_life_days: float = 30.0
     retrieval_weight: float = 0.70
     category_weight: float = 0.12
@@ -30,9 +35,14 @@ class PersonalizationConfig:
     brand_weight: float = 0.06
     price_weight: float = 0.06
     top_k_values: list[int] = field(default_factory=lambda: [5, 10, 20])
-    behavior_relevance: dict[str, int] = field(default_factory=lambda: {
-        "click": 1, "favorite": 2, "add_to_cart": 3, "purchase": 4,
-    })
+    behavior_relevance: dict[str, int] = field(
+        default_factory=lambda: {
+            "click": 1,
+            "favorite": 2,
+            "add_to_cart": 3,
+            "purchase": 4,
+        }
+    )
 
     @property
     def max_k(self) -> int:
@@ -55,8 +65,13 @@ class PersonalizationConfig:
         sw = self.subcategory_weight
         bw = self.brand_weight
         pw = self.price_weight
-        for name, w in [("retrieval", rw), ("category", cw), ("subcategory", sw),
-                         ("brand", bw), ("price", pw)]:
+        for name, w in [
+            ("retrieval", rw),
+            ("category", cw),
+            ("subcategory", sw),
+            ("brand", bw),
+            ("price", pw),
+        ]:
             if w < 0 or not math.isfinite(w):
                 errors.append(f"{name}_weight must be non-negative finite")
         total = rw + cw + sw + bw + pw
@@ -70,9 +85,13 @@ class PersonalizationConfig:
         for etype, g in self.behavior_relevance.items():
             if g < 1 or not isinstance(g, int):
                 errors.append(f"behavior_relevance.{etype} must be positive int")
-        if self.behavior_relevance.get("purchase", 0) < self.behavior_relevance.get("add_to_cart", 0):
+        if self.behavior_relevance.get("purchase", 0) < self.behavior_relevance.get(
+            "add_to_cart", 0
+        ):
             errors.append("purchase grade must be >= add_to_cart grade")
-        if self.behavior_relevance.get("add_to_cart", 0) < self.behavior_relevance.get("favorite", 0):
+        if self.behavior_relevance.get("add_to_cart", 0) < self.behavior_relevance.get(
+            "favorite", 0
+        ):
             errors.append("add_to_cart grade must be >= favorite grade")
         if self.behavior_relevance.get("favorite", 0) < self.behavior_relevance.get("click", 0):
             errors.append("favorite grade must be >= click grade")
@@ -126,15 +145,16 @@ def rerank_candidates(
     # Normalize retrieval scores
     fscores = [float(c["fusion_score"]) for c in candidates]
     fmin, fmax = min(fscores), max(fscores)
-    norms = (
-        [(s - fmin) / (fmax - fmin) for s in fscores]
-        if fmax > fmin
-        else [1.0] * len(fscores)
-    )
+    norms = [(s - fmin) / (fmax - fmin) for s in fscores] if fmax > fmin else [1.0] * len(fscores)
 
     # Normalize reranking weights
-    total_w = (config.retrieval_weight + config.category_weight +
-               config.subcategory_weight + config.brand_weight + config.price_weight)
+    total_w = (
+        config.retrieval_weight
+        + config.category_weight
+        + config.subcategory_weight
+        + config.brand_weight
+        + config.price_weight
+    )
     wr = config.retrieval_weight / total_w
     wc = config.category_weight / total_w
     ws = config.subcategory_weight / total_w
@@ -184,8 +204,9 @@ def rerank_candidates(
         behavior_g = (behavior_grades or {}).get(iid, 0)
         qrels_g = (qrels or {}).get(iid, 0)
 
-        scored.append((pscore, i, cat_aff, sub_aff, brand_aff, price_aff, norms[i],
-                       behavior_g, qrels_g))
+        scored.append(
+            (pscore, i, cat_aff, sub_aff, brand_aff, price_aff, norms[i], behavior_g, qrels_g)
+        )
 
     # Sort: personalized_score descending, then original_rank ascending, then item_id ascending
     scored.sort(key=lambda x: (-x[0], int(candidates[x[1]]["rank"]), candidates[x[1]]["item_id"]))
@@ -193,20 +214,22 @@ def rerank_candidates(
     results = []
     for rank, (pscore, idx, ca, sa, ba, pa, nrs, bg, qg) in enumerate(scored, start=1):
         c = candidates[idx]
-        results.append(RankedItem(
-            item_id=c["item_id"],
-            rank=rank,
-            original_rank=int(c["rank"]),
-            original_fusion_score=float(c["fusion_score"]),
-            normalized_retrieval_score=nrs,
-            category_affinity=ca,
-            subcategory_affinity=sa,
-            brand_affinity=ba,
-            price_affinity=pa,
-            personalized_score=pscore,
-            profile_status=profile.profile_status,
-            is_cold_start=profile.is_cold_start,
-            behavior_relevance_grade=bg,
-            qrels_relevance_grade=qg,
-        ))
+        results.append(
+            RankedItem(
+                item_id=c["item_id"],
+                rank=rank,
+                original_rank=int(c["rank"]),
+                original_fusion_score=float(c["fusion_score"]),
+                normalized_retrieval_score=nrs,
+                category_affinity=ca,
+                subcategory_affinity=sa,
+                brand_affinity=ba,
+                price_affinity=pa,
+                personalized_score=pscore,
+                profile_status=profile.profile_status,
+                is_cold_start=profile.is_cold_start,
+                behavior_relevance_grade=bg,
+                qrels_relevance_grade=qg,
+            )
+        )
     return results

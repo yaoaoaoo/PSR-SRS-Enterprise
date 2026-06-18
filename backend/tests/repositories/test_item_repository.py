@@ -13,8 +13,17 @@ from app.repositories.item_repository import ItemRepository
 @pytest.fixture
 def _items(db_session):
     items = [
-        Item(item_id=f"i{i}", title=f"Item {i}", description="", category="Electronics" if i % 2 == 0 else "Books",
-             subcategory="S", brand="B", price=Decimal("10"), quality_score=0.5, popularity_score=0.5)
+        Item(
+            item_id=f"i{i}",
+            title=f"Item {i}",
+            description="",
+            category="Electronics" if i % 2 == 0 else "Books",
+            subcategory="S",
+            brand="B",
+            price=Decimal("10"),
+            quality_score=0.5,
+            popularity_score=0.5,
+        )
         for i in range(5)
     ]
     db_session.add_all(items)

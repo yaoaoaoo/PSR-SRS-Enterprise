@@ -64,7 +64,9 @@ class EvaluationService:
                     for r in bm25_raw
                 ]
                 sem_alg = [
-                    SearchResult(item_id=r.item_id, score=r.score, rank=r.rank or 0, source="semantic")
+                    SearchResult(
+                        item_id=r.item_id, score=r.score, rank=r.rank or 0, source="semantic"
+                    )
                     for r in sem_raw
                 ]
                 cand = build_candidates(bm25_alg, sem_alg)

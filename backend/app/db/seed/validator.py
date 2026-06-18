@@ -32,9 +32,7 @@ def _parse_decimal(value: str, field: str, row_id: str) -> Decimal:
             raise ValueError("negative")
         return d
     except (InvalidOperation, ValueError):
-        raise ValueError(
-            f"Invalid {field} for {row_id}: {value!r}"
-        ) from None
+        raise ValueError(f"Invalid {field} for {row_id}: {value!r}") from None
 
 
 def _parse_float(value: str, field: str, row_id: str, lo: float, hi: float) -> float:
@@ -44,18 +42,14 @@ def _parse_float(value: str, field: str, row_id: str, lo: float, hi: float) -> f
             raise ValueError("out of range")
         return f
     except ValueError:
-        raise ValueError(
-            f"Invalid {field} for {row_id}: {value!r} (expected {lo}–{hi})"
-        ) from None
+        raise ValueError(f"Invalid {field} for {row_id}: {value!r} (expected {lo}–{hi})") from None
 
 
 def _parse_datetime(value: str, field: str, row_id: str) -> datetime:
     try:
         return datetime.fromisoformat(value)
     except ValueError:
-        raise ValueError(
-            f"Invalid {field} for {row_id}: {value!r}"
-        ) from None
+        raise ValueError(f"Invalid {field} for {row_id}: {value!r}") from None
 
 
 def _parse_json_list(value: str, field: str, row_id: str) -> list:
@@ -65,9 +59,7 @@ def _parse_json_list(value: str, field: str, row_id: str) -> list:
             raise ValueError("not a list")
         return parsed
     except (json.JSONDecodeError, ValueError):
-        raise ValueError(
-            f"Invalid {field} JSON for {row_id}: {value!r}"
-        ) from None
+        raise ValueError(f"Invalid {field} JSON for {row_id}: {value!r}") from None
 
 
 def _parse_bool(value: str, field: str, row_id: str) -> bool:
@@ -108,19 +100,25 @@ def validate_items(rows: list[dict[str, str]]) -> list[dict[str, Any]]:
 
         row_id = f"item {iid!r}"
         try:
-            parsed.append({
-                "item_id": iid,
-                "title": r["title"],
-                "description": r.get("description", ""),
-                "category": r["category"],
-                "subcategory": r["subcategory"],
-                "brand": r["brand"],
-                "price": _parse_decimal(r["price"], "price", row_id),
-                "quality_score": _parse_float(r["quality_score"], "quality_score", row_id, 0, 1),
-                "popularity_score": _parse_float(r["popularity_score"], "popularity_score", row_id, 0, 1),
-                "is_cold_start": _parse_bool(r["is_cold_start"], "is_cold_start", row_id),
-                "created_at": _parse_datetime(r["created_at"], "created_at", row_id),
-            })
+            parsed.append(
+                {
+                    "item_id": iid,
+                    "title": r["title"],
+                    "description": r.get("description", ""),
+                    "category": r["category"],
+                    "subcategory": r["subcategory"],
+                    "brand": r["brand"],
+                    "price": _parse_decimal(r["price"], "price", row_id),
+                    "quality_score": _parse_float(
+                        r["quality_score"], "quality_score", row_id, 0, 1
+                    ),
+                    "popularity_score": _parse_float(
+                        r["popularity_score"], "popularity_score", row_id, 0, 1
+                    ),
+                    "is_cold_start": _parse_bool(r["is_cold_start"], "is_cold_start", row_id),
+                    "created_at": _parse_datetime(r["created_at"], "created_at", row_id),
+                }
+            )
         except ValueError as e:
             errors.append(str(e))
 
@@ -150,15 +148,17 @@ def validate_users(rows: list[dict[str, str]]) -> list[dict[str, Any]]:
             pref_brands = _parse_json_list(r["preferred_brands"], "preferred_brands", row_id)
             price_pref = r.get("price_preference", "").strip() or None
 
-            parsed.append({
-                "user_id": uid,
-                "preferred_categories": pref_cats,
-                "preferred_brands": pref_brands,
-                "price_preference": price_pref,
-                "activity_level": r.get("activity_level", "") or None,
-                "is_cold_start": _parse_bool(r["is_cold_start"], "is_cold_start", row_id),
-                "created_at": _parse_datetime(r["created_at"], "created_at", row_id),
-            })
+            parsed.append(
+                {
+                    "user_id": uid,
+                    "preferred_categories": pref_cats,
+                    "preferred_brands": pref_brands,
+                    "price_preference": price_pref,
+                    "activity_level": r.get("activity_level", "") or None,
+                    "is_cold_start": _parse_bool(r["is_cold_start"], "is_cold_start", row_id),
+                    "created_at": _parse_datetime(r["created_at"], "created_at", row_id),
+                }
+            )
         except (ValueError, json.JSONDecodeError) as e:
             errors.append(str(e))
 
@@ -183,13 +183,15 @@ def validate_queries(rows: list[dict[str, str]]) -> list[dict[str, Any]]:
         seen_ids.add(qid)
 
         try:
-            parsed.append({
-                "query_id": qid,
-                "query_text": r["query_text"],
-                "intended_category": r.get("intended_category", "") or None,
-                "semantic_intent": r.get("semantic_intent", "") or None,
-                "created_at": _parse_datetime(r["created_at"], "created_at", qid),
-            })
+            parsed.append(
+                {
+                    "query_id": qid,
+                    "query_text": r["query_text"],
+                    "intended_category": r.get("intended_category", "") or None,
+                    "semantic_intent": r.get("semantic_intent", "") or None,
+                    "created_at": _parse_datetime(r["created_at"], "created_at", qid),
+                }
+            )
         except ValueError as e:
             errors.append(str(e))
 
@@ -226,11 +228,13 @@ def validate_qrels(
             grade = int(r["relevance_grade"])
             if grade not in (1, 2, 3):
                 raise ValueError("must be 1–3")
-            parsed.append({
-                "query_id": qid,
-                "item_id": iid,
-                "relevance_grade": grade,
-            })
+            parsed.append(
+                {
+                    "query_id": qid,
+                    "item_id": iid,
+                    "relevance_grade": grade,
+                }
+            )
         except ValueError as e:
             errors.append(f"Invalid relevance_grade for qrel {qid}/{iid}: {e}")
 
@@ -282,8 +286,12 @@ def validate_events(
         try:
             ts = _parse_datetime(r["timestamp"], "timestamp", row_id)
             position = _parse_int_opt(r.get("position", ""), "position", row_id, min_val=1)
-            click_dur = _parse_int_opt(r.get("click_duration_ms", ""), "click_duration_ms", row_id, min_val=0)
-            cart_qty = _parse_int_opt(r.get("add_to_cart_quantity", ""), "add_to_cart_quantity", row_id, min_val=0)
+            click_dur = _parse_int_opt(
+                r.get("click_duration_ms", ""), "click_duration_ms", row_id, min_val=0
+            )
+            cart_qty = _parse_int_opt(
+                r.get("add_to_cart_quantity", ""), "add_to_cart_quantity", row_id, min_val=0
+            )
             purchase = None
             if r.get("purchase_amount", "").strip():
                 d = Decimal(r["purchase_amount"])
@@ -291,21 +299,23 @@ def validate_events(
                     raise ValueError("negative")
                 purchase = float(d)
 
-            parsed.append({
-                "event_id": eid,
-                "event_type": etype,
-                "request_id": r.get("request_id", "").strip(),
-                "session_id": r.get("session_id", "").strip(),
-                "user_id": uid,
-                "query_id": qid,
-                "query_text": r.get("query_text", "") or None,
-                "item_id": iid,
-                "position": position,
-                "timestamp": ts,
-                "click_duration_ms": click_dur,
-                "add_to_cart_quantity": cart_qty,
-                "purchase_amount": purchase,
-            })
+            parsed.append(
+                {
+                    "event_id": eid,
+                    "event_type": etype,
+                    "request_id": r.get("request_id", "").strip(),
+                    "session_id": r.get("session_id", "").strip(),
+                    "user_id": uid,
+                    "query_id": qid,
+                    "query_text": r.get("query_text", "") or None,
+                    "item_id": iid,
+                    "position": position,
+                    "timestamp": ts,
+                    "click_duration_ms": click_dur,
+                    "add_to_cart_quantity": cart_qty,
+                    "purchase_amount": purchase,
+                }
+            )
         except ValueError as e:
             errors.append(str(e))
 

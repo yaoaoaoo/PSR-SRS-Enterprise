@@ -14,12 +14,23 @@ from app.personalization.reranker import (
 # Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def items_map() -> dict[str, dict]:
     return {
-        "a": {"category": "Electronics", "subcategory": "Laptops", "brand": "TechPro", "price": "1000"},
+        "a": {
+            "category": "Electronics",
+            "subcategory": "Laptops",
+            "brand": "TechPro",
+            "price": "1000",
+        },
         "b": {"category": "Clothing", "subcategory": "Shoes", "brand": "UrbanWear", "price": "100"},
-        "c": {"category": "Electronics", "subcategory": "Phones", "brand": "SmartWave", "price": "800"},
+        "c": {
+            "category": "Electronics",
+            "subcategory": "Phones",
+            "brand": "SmartWave",
+            "price": "800",
+        },
     }
 
 
@@ -60,6 +71,7 @@ def config() -> PersonalizationConfig:
 # Tests
 # ---------------------------------------------------------------------------
 
+
 class TestPersonalizationConfig:
     def test_defaults(self):
         cfg = PersonalizationConfig()
@@ -68,18 +80,25 @@ class TestPersonalizationConfig:
         assert cfg.half_life_days == 30.0
 
     def test_from_dict(self):
-        cfg = PersonalizationConfig.from_dict({
-            "retrieval_weight": 0.60,
-            "category_weight": 0.15,
-        })
+        cfg = PersonalizationConfig.from_dict(
+            {
+                "retrieval_weight": 0.60,
+                "category_weight": 0.15,
+            }
+        )
         assert cfg.retrieval_weight == 0.60
 
     def test_from_dict_invalid_weights(self):
         with pytest.raises(ValueError, match="weight"):
-            PersonalizationConfig.from_dict({
-                "retrieval_weight": 0, "category_weight": 0,
-                "subcategory_weight": 0, "brand_weight": 0, "price_weight": 0,
-            })
+            PersonalizationConfig.from_dict(
+                {
+                    "retrieval_weight": 0,
+                    "category_weight": 0,
+                    "subcategory_weight": 0,
+                    "brand_weight": 0,
+                    "price_weight": 0,
+                }
+            )
 
     def test_from_dict_invalid_train_ratio(self):
         with pytest.raises(ValueError, match="train_ratio"):
@@ -213,7 +232,10 @@ class TestRerankEdgeCases:
     def test_behavior_grades_applied(self, warm_profile, items_map, config):
         cand = [{"item_id": "a", "rank": "1", "fusion_score": "0.95"}]
         results = rerank_candidates(
-            cand, warm_profile, items_map, config,
+            cand,
+            warm_profile,
+            items_map,
+            config,
             behavior_grades={"a": 3},
         )
         assert results[0].behavior_relevance_grade == 3
@@ -221,7 +243,10 @@ class TestRerankEdgeCases:
     def test_qrels_applied(self, warm_profile, items_map, config):
         cand = [{"item_id": "a", "rank": "1", "fusion_score": "0.95"}]
         results = rerank_candidates(
-            cand, warm_profile, items_map, config,
+            cand,
+            warm_profile,
+            items_map,
+            config,
             qrels={"a": 2},
         )
         assert results[0].qrels_relevance_grade == 2

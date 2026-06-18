@@ -66,7 +66,10 @@ class ProfileService:
     ):
         self._session_factory = session_factory
         self._event_weights = event_weights or {
-            "click": 1.0, "favorite": 2.0, "add_to_cart": 3.0, "purchase": 5.0,
+            "click": 1.0,
+            "favorite": 2.0,
+            "add_to_cart": 3.0,
+            "purchase": 5.0,
         }
         # When recency decay is disabled, use a very large half-life so all
         # events contribute equally regardless of their timestamp.
@@ -99,7 +102,9 @@ class ProfileService:
             item_repo = ItemRepository(session)
             user_repo = UserRepository(session)
             train_events, items_map, users_map = build_profile_input(
-                event_repo, item_repo, user_repo,
+                event_repo,
+                item_repo,
+                user_repo,
             )
         finally:
             session.close()
@@ -110,8 +115,11 @@ class ProfileService:
 
         try:
             profiles = build_profiles(
-                train_events, items_map, users_map,
-                self._event_weights, self._half_life_days,
+                train_events,
+                items_map,
+                users_map,
+                self._event_weights,
+                self._half_life_days,
             )
         except Exception:
             self._error_message = "Profile build failed"
@@ -127,7 +135,12 @@ class ProfileService:
         )
         self._error_message = None
         elapsed = (datetime.now(UTC) - t0).total_seconds()
-        logger.info("Profile build completed gen=%d count=%d %.2fs", self._generation, len(profiles), elapsed)
+        logger.info(
+            "Profile build completed gen=%d count=%d %.2fs",
+            self._generation,
+            len(profiles),
+            elapsed,
+        )
 
     # ------------------------------------------------------------------
     # Single-user behavior refresh
@@ -144,7 +157,8 @@ class ProfileService:
             event_repo = EventRepository(session)
             # Read recent events for this user
             raw_events = event_repo.list_for_user(
-                user_id, limit=5000,
+                user_id,
+                limit=5000,
                 event_type=None,
             )
             positive_types = {"click", "favorite", "add_to_cart", "purchase"}
@@ -169,8 +183,11 @@ class ProfileService:
                 for e in valid_events
             ]
             profiles = build_profiles(
-                event_dicts, items_map, users_map,
-                self._event_weights, self._half_life_days,
+                event_dicts,
+                items_map,
+                users_map,
+                self._event_weights,
+                self._half_life_days,
             )
             behavior_profile = profiles.get(user_id)
             last_event_at = max((e.timestamp for e in valid_events), default=None)
@@ -184,12 +201,16 @@ class ProfileService:
             base_profile = old_snap.profiles.get(user_id) if old_snap else None
 
             final_profile, source = self._merge_profiles(
-                user, base_profile, behavior_profile,
+                user,
+                base_profile,
+                behavior_profile,
             )
 
             # Update snapshot
             self._snapshot = self._snapshot or ProfileSnapshot(
-                generation=0, built_at=datetime.now(UTC), profile_count=0,
+                generation=0,
+                built_at=datetime.now(UTC),
+                profile_count=0,
                 profiles={},
             )
             new_profiles = dict(self._snapshot.profiles)
@@ -281,7 +302,10 @@ class ProfileService:
 
         # No behavior data → use base
         if behavior_profile is None or behavior_profile.profile_status in (
-            "cold_start", "no_history", "no_positive", "empty",
+            "cold_start",
+            "no_history",
+            "no_positive",
+            "empty",
         ):
             if base_profile is not None:
                 return base_profile, "base"
@@ -292,7 +316,10 @@ class ProfileService:
 
         # No base → use behavior only
         if base_profile is None or base_profile.profile_status in (
-            "cold_start", "no_history", "no_positive", "empty",
+            "cold_start",
+            "no_history",
+            "no_positive",
+            "empty",
         ):
             behavior_profile.profile_status = "warm"
             return behavior_profile, "behavior"
@@ -327,9 +354,8 @@ class ProfileService:
             combined._price_log_sum = bp
             combined._price_weight_sum = 1.0
 
-        combined.positive_event_count = (
-            (base_profile.positive_event_count or 0) +
-            (behavior_profile.positive_event_count or 0)
+        combined.positive_event_count = (base_profile.positive_event_count or 0) + (
+            behavior_profile.positive_event_count or 0
         )
         combined.profile_status = "warm"
         combined.is_cold_start = False
@@ -357,12 +383,17 @@ class ProfileService:
             err = self._error_message
         if snap is not None:
             return ProfileStatus(
-                ready=True, generation=snap.generation,
-                built_at=snap.built_at, profile_count=snap.profile_count,
+                ready=True,
+                generation=snap.generation,
+                built_at=snap.built_at,
+                profile_count=snap.profile_count,
             )
         return ProfileStatus(
-            ready=False, generation=gen,
-            built_at=None, profile_count=0, error_message=err,
+            ready=False,
+            generation=gen,
+            built_at=None,
+            profile_count=0,
+            error_message=err,
         )
 
     def is_ready(self) -> bool:

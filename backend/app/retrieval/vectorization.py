@@ -25,6 +25,7 @@ from sklearn.preprocessing import normalize
 # Configuration
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class SemanticConfig:
     """Typed configuration for LSA semantic retrieval.
@@ -62,11 +63,15 @@ class SemanticConfig:
     def validate(self) -> list[str]:
         """Return a list of validation errors (empty if valid)."""
         errors: list[str] = []
-        for name, rng in [("word_ngram_range", self.word_ngram_range),
-                          ("char_ngram_range", self.char_ngram_range)]:
+        for name, rng in [
+            ("word_ngram_range", self.word_ngram_range),
+            ("char_ngram_range", self.char_ngram_range),
+        ]:
             if len(rng) != 2:
                 errors.append(f"{name} must have 2 elements")
-            elif not (isinstance(rng[0], int) and isinstance(rng[1], int) and rng[0] >= 1 and rng[1] >= 1):
+            elif not (
+                isinstance(rng[0], int) and isinstance(rng[1], int) and rng[0] >= 1 and rng[1] >= 1
+            ):
                 errors.append(f"{name} must be positive ints")
             elif rng[0] > rng[1]:
                 errors.append(f"{name}: min > max")
@@ -112,6 +117,7 @@ class SemanticConfig:
 # ---------------------------------------------------------------------------
 # Vectoriser pipeline
 # ---------------------------------------------------------------------------
+
 
 class SemanticVectorizer:
     """TF-IDF + TruncatedSVD pipeline with L2-normalised output.

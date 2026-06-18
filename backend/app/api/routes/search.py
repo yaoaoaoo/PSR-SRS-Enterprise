@@ -35,18 +35,29 @@ def search(
 
     hits = [
         SearchHitSchema(
-            item_id=h.item_id, rank=h.rank, score=h.score, source=h.source,
+            item_id=h.item_id,
+            rank=h.rank,
+            score=h.score,
+            source=h.source,
             original_rank=h.original_rank,
-            bm25_score=h.bm25_score, semantic_score=h.semantic_score,
-            fusion_score=h.fusion_score, personalization_score=h.personalization_score,
+            bm25_score=h.bm25_score,
+            semantic_score=h.semantic_score,
+            fusion_score=h.fusion_score,
+            personalization_score=h.personalization_score,
             title=str(h.metadata.get("title", "")),
             category=str(h.metadata.get("category", "")),
             subcategory=str(h.metadata.get("subcategory", "")),
             brand=str(h.metadata.get("brand", "")),
             price=str(h.metadata.get("price", "")),
-            quality_score=float(h.metadata.get("quality_score", 0)) if h.metadata.get("quality_score") is not None else None,
-            popularity_score=float(h.metadata.get("popularity_score", 0)) if h.metadata.get("popularity_score") is not None else None,
-            is_cold_start=bool(h.metadata.get("is_cold_start")) if h.metadata.get("is_cold_start") is not None else None,
+            quality_score=float(h.metadata.get("quality_score", 0))
+            if h.metadata.get("quality_score") is not None
+            else None,
+            popularity_score=float(h.metadata.get("popularity_score", 0))
+            if h.metadata.get("popularity_score") is not None
+            else None,
+            is_cold_start=bool(h.metadata.get("is_cold_start"))
+            if h.metadata.get("is_cold_start") is not None
+            else None,
         )
         for h in result.hits
     ]

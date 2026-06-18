@@ -22,8 +22,9 @@ logger = logging.getLogger(__name__)
 
 
 def _candidate_pool_size(top_k: int, item_count: int) -> int:
-    pool = max(top_k * service_settings.SEARCH_CANDIDATE_MULTIPLIER,
-               service_settings.SEARCH_MIN_CANDIDATES)
+    pool = max(
+        top_k * service_settings.SEARCH_CANDIDATE_MULTIPLIER, service_settings.SEARCH_MIN_CANDIDATES
+    )
     return min(pool, item_count)
 
 
@@ -41,17 +42,19 @@ def _make_hits(
         meta = dict(items_map.get(r.item_id, {}))
         b25 = bm25_scores.get(r.item_id) if bm25_scores else None
         sem = sem_scores.get(r.item_id) if sem_scores else None
-        hits.append(SearchHit(
-            item_id=r.item_id,
-            score=r.score if r.score is not None else 0.0,
-            rank=r.rank or 0,
-            source=source,
-            bm25_score=b25,
-            semantic_score=sem,
-            fusion_score=r.score if source in ("rrf", "linear") else None,
-            original_rank=r.rank,
-            metadata=meta,
-        ))
+        hits.append(
+            SearchHit(
+                item_id=r.item_id,
+                score=r.score if r.score is not None else 0.0,
+                rank=r.rank or 0,
+                source=source,
+                bm25_score=b25,
+                semantic_score=sem,
+                fusion_score=r.score if source in ("rrf", "linear") else None,
+                original_rank=r.rank,
+                metadata=meta,
+            )
+        )
     return hits
 
 
@@ -107,8 +110,16 @@ class SearchService:
             sem_raw = snapshot.semantic_index.search(query_text, top_k=pool)
 
             # Convert to algorithm types for fusion
-            bm25_alg = [AlgSearchResult(item_id=r.item_id, score=r.score, rank=r.rank or 0, source="bm25") for r in bm25_raw]
-            sem_alg = [AlgSearchResult(item_id=r.item_id, score=r.score, rank=r.rank or 0, source="semantic") for r in sem_raw]
+            bm25_alg = [
+                AlgSearchResult(item_id=r.item_id, score=r.score, rank=r.rank or 0, source="bm25")
+                for r in bm25_raw
+            ]
+            sem_alg = [
+                AlgSearchResult(
+                    item_id=r.item_id, score=r.score, rank=r.rank or 0, source="semantic"
+                )
+                for r in sem_raw
+            ]
 
             candidates = build_candidates(bm25_alg, sem_alg)
 
@@ -124,12 +135,18 @@ class SearchService:
             items_map = snapshot.items_map
             for r in fused:
                 meta = dict(items_map.get(r.item_id, {}))
-                hits.append(SearchHit(
-                    item_id=r.item_id, score=r.fusion_score, rank=r.rank,
-                    source=source,
-                    bm25_score=r.bm25_score, semantic_score=r.semantic_score,
-                    fusion_score=r.fusion_score, metadata=meta,
-                ))
+                hits.append(
+                    SearchHit(
+                        item_id=r.item_id,
+                        score=r.fusion_score,
+                        rank=r.rank,
+                        source=source,
+                        bm25_score=r.bm25_score,
+                        semantic_score=r.semantic_score,
+                        fusion_score=r.fusion_score,
+                        metadata=meta,
+                    )
+                )
         else:
             raise UnsupportedSearchModeError(f"Unknown mode: {mode}")
 
@@ -138,8 +155,10 @@ class SearchService:
         fallback_reason = None
         if personalize and self._personalization:
             result = self._personalization.rerank(
-                candidates=hits, user_id=user_id,  # type: ignore[arg-type]
-                top_k=top_k, index_snapshot=snapshot,
+                candidates=hits,
+                user_id=user_id,  # type: ignore[arg-type]
+                top_k=top_k,
+                index_snapshot=snapshot,
             )
             personalized = result.applied
             fallback_reason = result.fallback_reason

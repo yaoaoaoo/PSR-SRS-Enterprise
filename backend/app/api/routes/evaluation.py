@@ -75,12 +75,12 @@ def candidate_coverage(
             "items": {iid: 1 for iid in req_item.candidate_item_ids},
             "profile_status": "warm",  # simplified
         }
-        candidates_by_qid[qid] = [
-            {"item_id": iid} for iid in req_item.candidate_item_ids
-        ]
+        candidates_by_qid[qid] = [{"item_id": iid} for iid in req_item.candidate_item_ids]
 
     result = compute_candidate_coverage(
-        test_requests, candidates_by_qid, eligible_rids,
+        test_requests,
+        candidates_by_qid,
+        eligible_rids,
     )
 
     took_ms = (time.monotonic() - t0) * 1000
@@ -91,12 +91,14 @@ def candidate_coverage(
             covered_requests=result["covered_positive_request_count"],
             uncovered_requests=result["uncovered_positive_request_count"],
             request_level_coverage=round(
-                result["request_level_candidate_positive_coverage"], 6,
+                result["request_level_candidate_positive_coverage"],
+                6,
             ),
             total_positive_items=result.get("total_positive_item_count", 0),
             covered_positive_items=result.get("covered_positive_item_count", 0),
             item_level_recall=round(
-                result.get("item_level_candidate_positive_recall", 0.0), 6,
+                result.get("item_level_candidate_positive_recall", 0.0),
+                6,
             ),
             took_ms=round(took_ms, 2),
         ),
@@ -116,24 +118,33 @@ def profile_impact(
 
     if not user_id or not query_id:
         from fastapi.responses import JSONResponse
-        return JSONResponse(status_code=422, content=ErrorResponse(
-            error=ErrorDetail(code="validation", message="user_id and query_id required"),
-            meta=ApiMeta(request_id=_rid(request)),
-        ).model_dump())
+
+        return JSONResponse(
+            status_code=422,
+            content=ErrorResponse(
+                error=ErrorDetail(code="validation", message="user_id and query_id required"),
+                meta=ApiMeta(request_id=_rid(request)),
+            ).model_dump(),
+        )
     if k < 1 or k > 100:
         from fastapi.responses import JSONResponse
-        return JSONResponse(status_code=422, content=ErrorResponse(
-            error=ErrorDetail(code="validation", message="k must be 1-100"),
-            meta=ApiMeta(request_id=_rid(request)),
-        ).model_dump())
+
+        return JSONResponse(
+            status_code=422,
+            content=ErrorResponse(
+                error=ErrorDetail(code="validation", message="k must be 1-100"),
+                meta=ApiMeta(request_id=_rid(request)),
+            ).model_dump(),
+        )
 
     gen = profile_svc.get_status().generation
 
     # Base ranking (non-personalized)
     base_resp = search_svc.search(query_id, mode=SearchMode.LINEAR, top_k=k, personalize=False)
     # Personalized ranking
-    pers_resp = search_svc.search(query_id, mode=SearchMode.LINEAR, top_k=k,
-                                  user_id=user_id, personalize=True)
+    pers_resp = search_svc.search(
+        query_id, mode=SearchMode.LINEAR, top_k=k, user_id=user_id, personalize=True
+    )
 
     base_items = [h.item_id for h in base_resp.hits]
     pers_items = [h.item_id for h in pers_resp.hits]
@@ -148,9 +159,23 @@ def profile_impact(
         if pr != h.rank:
             changed += 1
         if pr < h.rank:
-            promoted.append({"item_id": h.item_id, "base_position": h.rank, "personalized_position": pr, "delta": pr - h.rank})
+            promoted.append(
+                {
+                    "item_id": h.item_id,
+                    "base_position": h.rank,
+                    "personalized_position": pr,
+                    "delta": pr - h.rank,
+                }
+            )
         elif pr > h.rank:
-            demoted.append({"item_id": h.item_id, "base_position": h.rank, "personalized_position": pr, "delta": pr - h.rank})
+            demoted.append(
+                {
+                    "item_id": h.item_id,
+                    "base_position": h.rank,
+                    "personalized_position": pr,
+                    "delta": pr - h.rank,
+                }
+            )
 
     resp_data = {
         "user_id": user_id,

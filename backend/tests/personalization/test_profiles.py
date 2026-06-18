@@ -10,11 +10,22 @@ from app.personalization.profiles import UserProfile, build_profiles
 # Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def items() -> dict[str, dict]:
     return {
-        "i1": {"category": "Electronics", "subcategory": "Laptops", "brand": "TechPro", "price": "1000"},
-        "i2": {"category": "Electronics", "subcategory": "Phones", "brand": "SmartWave", "price": "800"},
+        "i1": {
+            "category": "Electronics",
+            "subcategory": "Laptops",
+            "brand": "TechPro",
+            "price": "1000",
+        },
+        "i2": {
+            "category": "Electronics",
+            "subcategory": "Phones",
+            "brand": "SmartWave",
+            "price": "800",
+        },
         "i3": {"category": "Books", "subcategory": "Fiction", "brand": "ReadWell", "price": "20"},
     }
 
@@ -63,6 +74,7 @@ def event_weights() -> dict[str, float]:
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 class TestUserProfile:
     def test_default_empty(self):
@@ -139,13 +151,15 @@ class TestBuildProfiles:
         assert len(warm.brand_weights) > 0
 
     def test_missing_item_no_crash(self, items, users_map, event_weights):
-        events = [{
-            "user_id": "u_warm",
-            "event_type": "purchase",
-            "item_id": "nonexistent_item",
-            "timestamp": "2026-03-20T10:00:00+00:00",
-            "session_id": "sess_1",
-        }]
+        events = [
+            {
+                "user_id": "u_warm",
+                "event_type": "purchase",
+                "item_id": "nonexistent_item",
+                "timestamp": "2026-03-20T10:00:00+00:00",
+                "session_id": "sess_1",
+            }
+        ]
         profiles = build_profiles(events, items, users_map, event_weights, 30.0)
         warm = profiles["u_warm"]
         assert warm.train_event_count == 1
@@ -190,7 +204,8 @@ class TestUserProfileEdgeCases:
         p.add_event(
             {"timestamp": "2026-03-15T10:00:00+00:00"},
             {"category": "Electronics", "price": "100"},
-            weight=0.0, decay=1.0,
+            weight=0.0,
+            decay=1.0,
         )
         assert p.positive_event_count == 0
 
@@ -199,7 +214,8 @@ class TestUserProfileEdgeCases:
         p.add_event(
             {"timestamp": "2026-03-15T10:00:00+00:00"},
             {"category": "Electronics", "price": "100"},
-            weight=1.0, decay=0.0,
+            weight=1.0,
+            decay=0.0,
         )
         assert p.positive_event_count == 0
 
@@ -208,7 +224,8 @@ class TestUserProfileEdgeCases:
         p.add_event(
             {"timestamp": "2026-03-15T10:00:00+00:00"},
             {"category": "Electronics", "price": "not_a_number"},
-            weight=1.0, decay=1.0,
+            weight=1.0,
+            decay=1.0,
         )
         assert p.positive_event_count == 1
         assert p.mean_log_price is not None
@@ -218,7 +235,8 @@ class TestUserProfileEdgeCases:
         p.add_event(
             {"timestamp": "2026-03-15T10:00:00+00:00"},
             {"category": "Electronics", "price": "0"},
-            weight=1.0, decay=1.0,
+            weight=1.0,
+            decay=1.0,
         )
         assert p.mean_log_price is None  # price=0 skipped
 
@@ -227,7 +245,8 @@ class TestUserProfileEdgeCases:
         p.add_event(
             {"timestamp": "2026-03-15T10:00:00+00:00"},
             {},  # empty item
-            weight=1.0, decay=1.0,
+            weight=1.0,
+            decay=1.0,
         )
         assert p.positive_event_count == 1
         assert p.category_weights == {}
@@ -237,7 +256,8 @@ class TestUserProfileEdgeCases:
         p.add_event(
             {"timestamp": "2026-03-15T10:00:00+00:00"},
             {"category": "X", "price": "50"},
-            weight=1.0, decay=1.0,
+            weight=1.0,
+            decay=1.0,
         )
         assert p.brand_weights == {}
 
@@ -258,7 +278,8 @@ class TestUserProfileEdgeCases:
         p.add_event(
             {"timestamp": "2026-03-15T10:00:00+00:00"},
             {"category": "X", "price": "50"},
-            weight=1.0, decay=1.0,
+            weight=1.0,
+            decay=1.0,
         )
         assert p.last_train_event_at() != ""
 
@@ -267,13 +288,15 @@ class TestUserProfileEdgeCases:
         p.add_event(
             {"timestamp": "2026-03-10T10:00:00+00:00"},
             {"category": "X", "price": "50"},
-            weight=1.0, decay=1.0,
+            weight=1.0,
+            decay=1.0,
         )
         earlier = p.last_train_event_at()
         p.add_event(
             {"timestamp": "2026-03-20T10:00:00+00:00"},
             {"category": "Y", "price": "60"},
-            weight=1.0, decay=1.0,
+            weight=1.0,
+            decay=1.0,
         )
         later = p.last_train_event_at()
         assert later != earlier
@@ -283,32 +306,44 @@ class TestBuildProfilesEdgeCases:
     """Edge cases for build_profiles."""
 
     def test_unknown_event_type(self, items, users_map, event_weights):
-        events = [{
-            "user_id": "u_warm", "event_type": "scroll",  # unknown type
-            "item_id": "i1", "timestamp": "2026-03-15T10:00:00+00:00",
-            "session_id": "sess_1",
-        }]
+        events = [
+            {
+                "user_id": "u_warm",
+                "event_type": "scroll",  # unknown type
+                "item_id": "i1",
+                "timestamp": "2026-03-15T10:00:00+00:00",
+                "session_id": "sess_1",
+            }
+        ]
         profiles = build_profiles(events, items, users_map, event_weights, 30.0)
         p = profiles["u_warm"]
         assert p.train_event_count == 1
         assert p.positive_event_count == 0  # scroll is not a positive type
 
     def test_event_with_missing_item_id(self, items, users_map, event_weights):
-        events = [{
-            "user_id": "u_warm", "event_type": "click",
-            "item_id": "", "timestamp": "2026-03-15T10:00:00+00:00",
-            "session_id": "sess_1",
-        }]
+        events = [
+            {
+                "user_id": "u_warm",
+                "event_type": "click",
+                "item_id": "",
+                "timestamp": "2026-03-15T10:00:00+00:00",
+                "session_id": "sess_1",
+            }
+        ]
         profiles = build_profiles(events, items, users_map, event_weights, 30.0)
         p = profiles["u_warm"]
         assert p.train_event_count == 1
 
     def test_new_user_not_in_users_map(self, items, users_map, event_weights):
-        events = [{
-            "user_id": "u_new", "event_type": "click",
-            "item_id": "i1", "timestamp": "2026-03-15T10:00:00+00:00",
-            "session_id": "sess_1",
-        }]
+        events = [
+            {
+                "user_id": "u_new",
+                "event_type": "click",
+                "item_id": "i1",
+                "timestamp": "2026-03-15T10:00:00+00:00",
+                "session_id": "sess_1",
+            }
+        ]
         profiles = build_profiles(events, items, users_map, event_weights, 30.0)
         assert "u_new" in profiles
         assert profiles["u_new"].profile_status == "warm"
@@ -319,11 +354,15 @@ class TestBuildProfilesEdgeCases:
             assert p.train_event_count == 0
 
     def test_single_click_event(self, items, users_map, event_weights):
-        events = [{
-            "user_id": "u_warm", "event_type": "click",
-            "item_id": "i1", "timestamp": "2026-03-15T10:00:00+00:00",
-            "session_id": "sess_1",
-        }]
+        events = [
+            {
+                "user_id": "u_warm",
+                "event_type": "click",
+                "item_id": "i1",
+                "timestamp": "2026-03-15T10:00:00+00:00",
+                "session_id": "sess_1",
+            }
+        ]
         profiles = build_profiles(events, items, users_map, event_weights, 30.0)
         p = profiles["u_warm"]
         assert p.positive_event_count == 1
@@ -332,10 +371,20 @@ class TestBuildProfilesEdgeCases:
 
     def test_multiple_events_accumulate(self, items, users_map, event_weights):
         events = [
-            {"user_id": "u_warm", "event_type": "click", "item_id": "i1",
-             "timestamp": "2026-03-15T10:00:00+00:00", "session_id": "sess_1"},
-            {"user_id": "u_warm", "event_type": "purchase", "item_id": "i1",
-             "timestamp": "2026-03-15T11:00:00+00:00", "session_id": "sess_1"},
+            {
+                "user_id": "u_warm",
+                "event_type": "click",
+                "item_id": "i1",
+                "timestamp": "2026-03-15T10:00:00+00:00",
+                "session_id": "sess_1",
+            },
+            {
+                "user_id": "u_warm",
+                "event_type": "purchase",
+                "item_id": "i1",
+                "timestamp": "2026-03-15T11:00:00+00:00",
+                "session_id": "sess_1",
+            },
         ]
         profiles = build_profiles(events, items, users_map, event_weights, 30.0)
         p = profiles["u_warm"]
@@ -345,15 +394,21 @@ class TestBuildProfilesEdgeCases:
         assert len(p.category_weights) >= 1
 
     def test_no_positive_finalize_status(self, users_map, event_weights):
-        events = [{
-            "user_id": "u_warm", "event_type": "impression",
-            "item_id": "i1", "timestamp": "2026-03-15T10:00:00+00:00",
-            "session_id": "sess_1",
-        }]
+        events = [
+            {
+                "user_id": "u_warm",
+                "event_type": "impression",
+                "item_id": "i1",
+                "timestamp": "2026-03-15T10:00:00+00:00",
+                "session_id": "sess_1",
+            }
+        ]
         profiles = build_profiles(
             events,
             {"i1": {"category": "X", "price": "10"}},
-            users_map, event_weights, 30.0,
+            users_map,
+            event_weights,
+            30.0,
         )
         p = profiles["u_warm"]
         assert p.profile_status == "no_positive"
@@ -369,11 +424,15 @@ class TestBuildProfilesEdgeCases:
 
     def test_half_life_zero(self, items, users_map, event_weights):
         """half_life_days=0 means no decay."""
-        events = [{
-            "user_id": "u_warm", "event_type": "click",
-            "item_id": "i1", "timestamp": "2026-01-01T00:00:00+00:00",
-            "session_id": "sess_1",
-        }]
+        events = [
+            {
+                "user_id": "u_warm",
+                "event_type": "click",
+                "item_id": "i1",
+                "timestamp": "2026-01-01T00:00:00+00:00",
+                "session_id": "sess_1",
+            }
+        ]
         profiles = build_profiles(events, items, users_map, event_weights, 0.0)
         p = profiles["u_warm"]
         assert p.positive_event_count == 1  # no decay — event still counts

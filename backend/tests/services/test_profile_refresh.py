@@ -17,22 +17,54 @@ from app.services.profile_service import ProfileService
 def _pf_data(db_session):
     users = [User(user_id=f"u{j}", is_cold_start=(j == 3)) for j in range(4)]
     items = [
-        Item(item_id=f"i{j}", title=f"Item {j}", description="", category="Electronics" if j < 2 else "Books",
-             subcategory="S", brand="B", price=Decimal("100"),
-             quality_score=0.5, popularity_score=0.5)
+        Item(
+            item_id=f"i{j}",
+            title=f"Item {j}",
+            description="",
+            category="Electronics" if j < 2 else "Books",
+            subcategory="S",
+            brand="B",
+            price=Decimal("100"),
+            quality_score=0.5,
+            popularity_score=0.5,
+        )
         for j in range(3)
     ]
     db_session.add_all(users + items)
     db_session.flush()
     # Events for u0: click + purchase
     events = [
-        Event(event_id="ev0", event_type="click", request_id="r", session_id="s",
-              user_id="u0", item_id="i0", position=1, timestamp=datetime(2026, 6, 1, tzinfo=UTC)),
-        Event(event_id="ev1", event_type="purchase", request_id="r", session_id="s",
-              user_id="u0", item_id="i1", position=2, timestamp=datetime(2026, 6, 2, tzinfo=UTC)),
+        Event(
+            event_id="ev0",
+            event_type="click",
+            request_id="r",
+            session_id="s",
+            user_id="u0",
+            item_id="i0",
+            position=1,
+            timestamp=datetime(2026, 6, 1, tzinfo=UTC),
+        ),
+        Event(
+            event_id="ev1",
+            event_type="purchase",
+            request_id="r",
+            session_id="s",
+            user_id="u0",
+            item_id="i1",
+            position=2,
+            timestamp=datetime(2026, 6, 2, tzinfo=UTC),
+        ),
         # u1: impression only (ignored)
-        Event(event_id="ev2", event_type="impression", request_id="r", session_id="s",
-              user_id="u1", item_id="i0", position=1, timestamp=datetime(2026, 6, 1, tzinfo=UTC)),
+        Event(
+            event_id="ev2",
+            event_type="impression",
+            request_id="r",
+            session_id="s",
+            user_id="u1",
+            item_id="i0",
+            position=1,
+            timestamp=datetime(2026, 6, 1, tzinfo=UTC),
+        ),
     ]
     db_session.add_all(events)
     db_session.commit()
@@ -162,12 +194,39 @@ class TestProfileImpact:
 
         users = [User(user_id="ui1"), User(user_id="ui2")]
         items = [
-            Item(item_id="ii1", title="Electronics A", description="", category="Electronics", subcategory="S",
-                 brand="B1", price=Decimal("100"), quality_score=0.5, popularity_score=0.5),
-            Item(item_id="ii2", title="Electronics B", description="", category="Electronics", subcategory="S",
-                 brand="B2", price=Decimal("200"), quality_score=0.5, popularity_score=0.5),
-            Item(item_id="ii3", title="Book C", description="", category="Books", subcategory="S",
-                 brand="B3", price=Decimal("50"), quality_score=0.5, popularity_score=0.5),
+            Item(
+                item_id="ii1",
+                title="Electronics A",
+                description="",
+                category="Electronics",
+                subcategory="S",
+                brand="B1",
+                price=Decimal("100"),
+                quality_score=0.5,
+                popularity_score=0.5,
+            ),
+            Item(
+                item_id="ii2",
+                title="Electronics B",
+                description="",
+                category="Electronics",
+                subcategory="S",
+                brand="B2",
+                price=Decimal("200"),
+                quality_score=0.5,
+                popularity_score=0.5,
+            ),
+            Item(
+                item_id="ii3",
+                title="Book C",
+                description="",
+                category="Books",
+                subcategory="S",
+                brand="B3",
+                price=Decimal("50"),
+                quality_score=0.5,
+                popularity_score=0.5,
+            ),
         ]
         queries = [Query(query_id="qi1", query_text="electronics")]
         s = db_session_factory()
@@ -175,10 +234,26 @@ class TestProfileImpact:
         s.flush()
 
         events = [
-            Event(event_id="pie1", event_type="click", request_id="r", session_id="s",
-                  user_id="ui1", item_id="ii1", position=1, timestamp=datetime(2026, 6, 1, tzinfo=UTC)),
-            Event(event_id="pie2", event_type="purchase", request_id="r", session_id="s",
-                  user_id="ui1", item_id="ii2", position=2, timestamp=datetime(2026, 6, 2, tzinfo=UTC)),
+            Event(
+                event_id="pie1",
+                event_type="click",
+                request_id="r",
+                session_id="s",
+                user_id="ui1",
+                item_id="ii1",
+                position=1,
+                timestamp=datetime(2026, 6, 1, tzinfo=UTC),
+            ),
+            Event(
+                event_id="pie2",
+                event_type="purchase",
+                request_id="r",
+                session_id="s",
+                user_id="ui1",
+                item_id="ii2",
+                position=2,
+                timestamp=datetime(2026, 6, 2, tzinfo=UTC),
+            ),
         ]
         s.add_all(events)
         s.commit()
@@ -197,7 +272,9 @@ class TestProfileImpact:
 
     def test_profile_impact_no_crash_unknown_user(self, db_session_factory):
         c = self._setup_impact(db_session_factory)
-        resp = c.search_service.search("Electronics", user_id="unknown_user", personalize=True, top_k=5)
+        resp = c.search_service.search(
+            "Electronics", user_id="unknown_user", personalize=True, top_k=5
+        )
         assert resp.fallback_reason is not None
 
     def test_profile_impact_cold_start_fallback(self, db_session_factory):
@@ -219,7 +296,10 @@ class TestProfileImpact:
         ps.build()
         result = ps.refresh_all(limit=10)
         assert result.requested_users >= 1
-        assert result.refreshed_users + result.unchanged_users + result.failed_users == result.requested_users
+        assert (
+            result.refreshed_users + result.unchanged_users + result.failed_users
+            == result.requested_users
+        )
 
     def test_refresh_empty_events_unchanged(self, db_session_factory, _pf_data):
         ps = ProfileService(db_session_factory)
@@ -252,13 +332,23 @@ class TestProfileImpact:
         from datetime import UTC, datetime
 
         from app.models.event import Event
+
         ps = ProfileService(db_session_factory, half_life_days=30.0)
         ps.build()
         # Add an old event
         s = db_session_factory()
-        s.add(Event(event_id="ev_old", event_type="click", request_id="r", session_id="s",
-                     user_id="u0", item_id="i0", position=1,
-                     timestamp=datetime(2020, 1, 1, tzinfo=UTC)))
+        s.add(
+            Event(
+                event_id="ev_old",
+                event_type="click",
+                request_id="r",
+                session_id="s",
+                user_id="u0",
+                item_id="i0",
+                position=1,
+                timestamp=datetime(2020, 1, 1, tzinfo=UTC),
+            )
+        )
         s.commit()
         s.close()
         ps.refresh_user("u0")

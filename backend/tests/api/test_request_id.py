@@ -24,7 +24,9 @@ class TestRequestID:
 
     def test_header_body_identical(self, client_with_data):
         # Use search endpoint which returns DataResponse with meta
-        resp = client_with_data.post("/api/v1/search", json={"query": "electronics"}, headers={"X-Request-ID": "abc123"})
+        resp = client_with_data.post(
+            "/api/v1/search", json={"query": "electronics"}, headers={"X-Request-ID": "abc123"}
+        )
         hdr = resp.headers["X-Request-ID"]
         body = resp.json().get("meta", {}).get("request_id", "")
         assert hdr == body
