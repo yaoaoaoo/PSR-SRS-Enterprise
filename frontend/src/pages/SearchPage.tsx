@@ -7,6 +7,7 @@ import type { SearchHit, SearchMode, UserSchema } from '../api/types';
 import { ErrorState } from '../components/common/ErrorState';
 import { EmptyState } from '../components/common/EmptyState';
 import { Link } from 'react-router-dom';
+import { createEventId, createRequestId, createSessionId } from '../utils/ids';
 
 const MODES: { value: SearchMode; label: string }[] = [
   { value: 'bm25', label: 'BM25' },
@@ -28,6 +29,7 @@ export default function SearchPage() {
   const [actionStatus, setActionStatus] = useState<Record<string, string>>({});
   const abortRef = useRef<AbortController | null>(null);
   const requestIdRef = useRef<string>('');
+  const sessionIdRef = useRef<string>('');
   const reportedImpressions = useRef<Set<string>>(new Set());
 
   const loadUsers = useCallback(async () => {
@@ -55,12 +57,12 @@ export default function SearchPage() {
         personalize,
       }, ctrl.signal);
       const d = resp.data;
-      requestIdRef.current = `req_${Date.now().toString(36)}`;
+      requestIdRef.current = resp.meta?.request_id || createRequestId();
+      sessionIdRef.current = createSessionId();
       setResult({ hits: d.hits, summary: { ...d } });
       reportedImpressions.current = new Set();
 
       // Report impressions for each result
-      const sessionId = `sess_${Date.now().toString(36)}`;
       d.hits.forEach((hit) => {
         const cei = `imp_${requestIdRef.current}_${hit.item_id}`;
         if (!reportedImpressions.current.has(cei)) {
@@ -70,7 +72,7 @@ export default function SearchPage() {
             event_id: cei,
             client_event_id: cei,
             request_id: requestIdRef.current,
-            session_id: sessionId,
+            session_id: sessionIdRef.current,
             user_id: personalize ? (userId || '') : '',
             query_id: null,
             query_text: q,
@@ -96,7 +98,7 @@ export default function SearchPage() {
   };
 
   const reportAction = async (hit: SearchHit, action: string) => {
-    const cei = `${action}_${requestIdRef.current}_${hit.item_id}_${Date.now().toString(36)}`;
+    const cei = createEventId(action, requestIdRef.current, hit.item_id);
     setActionStatus(prev => ({ ...prev, [hit.item_id]: action }));
     try {
       await createEvent({
@@ -104,7 +106,7 @@ export default function SearchPage() {
         event_id: cei,
         client_event_id: cei,
         request_id: requestIdRef.current,
-        session_id: '',
+        session_id: sessionIdRef.current,
         user_id: personalize ? (userId || '') : '',
         query_id: null,
         query_text: query.trim(),
@@ -118,13 +120,13 @@ export default function SearchPage() {
   };
 
   const reportClick = (hit: SearchHit) => {
-    const cei = `click_${requestIdRef.current}_${hit.item_id}`;
+    const cei = createEventId('click', requestIdRef.current, hit.item_id);
     createEvent({
       event_type: 'click',
       event_id: cei,
       client_event_id: cei,
       request_id: requestIdRef.current,
-      session_id: '',
+      session_id: sessionIdRef.current,
       user_id: personalize ? (userId || '') : '',
       query_id: null,
       query_text: query.trim(),
